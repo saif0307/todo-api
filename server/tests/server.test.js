@@ -1,13 +1,15 @@
 const request = require('supertest');
 const expect = require('expect')
-
+const {ObjectID} = require('mongodb')
 const {Todo} =  require('./../models/todos.js')
 const {app} = require ('./../server')
 
 const todos = [{
-    text: "this is a new todo"
+    text: "this is a new todo",
+    _id: new ObjectID()
     },{
-     text: "this is the second todo from test"
+     text: "this is the second todo from test",
+     _id: new ObjectID()
     }]
 
 beforeEach((done) => {
@@ -77,4 +79,46 @@ describe('Get /Todos', () => {
             done()
         })
     })
+})
+
+describe('Get/ Todos:id', () => {
+    it('should get a todo by its ID', (done)  => {
+        request(app)
+         .get(`/todos/${todos[0]._id.toHexString()}`)
+         .expect(200)
+         .expect((res) => {
+             expect(res.body.todo.text).toBe(todos[0].text)
+         })
+         .end((err, res) => {
+             if(err) {
+                 return done(err)
+             }
+             done()
+         })
+    })
+
+    it('it should return 404 if no todo', (done) => {
+        request(app)
+         .get(`/todos/${new ObjectID().toHexString()}`)
+         .expect(404)
+         .end((err, res) => {
+             if(err) {
+                 return done(err)
+             }
+             done()
+         })
+    })
+
+    it('should return 404 for invalid id', (done) => {
+        request(app)
+         .get(`/todos/123`)
+         .expect(404)
+         .end((err) => {
+            if(err) {
+                return done(err)
+            }
+            done()
+        })
+    })
+   
 })
