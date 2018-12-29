@@ -1,7 +1,5 @@
 require('./config/config')
 
-
-
 const express = require('express')
 const bodyParser = require('body-parser')
 const {ObjectID} = require('mongodb')
@@ -94,6 +92,23 @@ app.patch('/todos/:id', (req, res) => {
         res.status(200).send({todo})
     })
 })
+
+// USER/ MODEL SETUP
+
+app.post('/users', (req, res) => {
+    const userData = _.pick(req.body, ["email", "password"])
+    const user = new User(userData)
+    user.save().then(() => {
+        // res.status(200).send({user: user1})
+            return user.generateAuthToken()
+    }).then((token) => {
+        res.header('x-auth', token).send(user)
+    })
+    .catch((err) => {
+        res.status(400).send(err)
+    })
+})
+
 
 app.listen(port, () => {
     console.log(`Server started at port:${port}`)
