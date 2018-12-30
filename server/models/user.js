@@ -35,7 +35,24 @@ const UserSchema = new mongoose.Schema({
 UserSchema.methods.toJSON = function() {
     const user = this
     const userObj = user.toObject()
-    return  _.pick(userObj, ["email", "password"])
+    return  _.pick(userObj, ["email", "_id"])
+}
+
+UserSchema.statics.findByToken = function(token) {
+    let decoded;
+     try {
+        decoded = jwt.verify(token, 'abc123')
+     }catch (e) {
+        // return new Promise((resolve, reject) => {
+        //     reject()
+        // })
+        return Promise.reject()   // same as the above commented code
+     }
+    return this.findOne({
+         _id: decoded._id,
+         'tokens.token': token,
+         'tokens.access': 'auth'
+     })
 }
 
 UserSchema.methods.generateAuthToken = function() {
